@@ -10,6 +10,7 @@ class GenerateFromTemplate:
 
         self.packet = io.BytesIO()
         self.c = Canvas(self.packet,pagesize=(self.template_page.mediabox.width,self.template_page.mediabox.height))
+        self.c.setFont("Helvetica",18)
 
     
     def addText(self,text,point):
@@ -44,7 +45,8 @@ overlay_arr = list(overlay_data.values())
 
 gen = GenerateFromTemplate("test.pdf")
 
-gen.addText("hello",[200,400])
+for i in range(len(input_arr)):
+    gen.addText(input_arr[i],overlay_arr[i])
 
 gen.merge()
 gen.generate("Output.pdf")
