@@ -33,20 +33,21 @@ class GenerateFromTemplate:
         outputStream.close()
 
 
-with open("test.json") as f:
+with open("tests.json") as f:
     input_data = json.load(f)
 
 
 with open("overlay.json") as f:
     overlay_data = json.load(f)
 
+pdf_path = overlay_data["path"]
 input_arr =  list(input_data.values())
 overlay_arr = list(overlay_data.values())
 
-gen = GenerateFromTemplate("test.pdf")
+gen = GenerateFromTemplate(pdf_path)
 
 for i in range(len(input_arr)):
-    gen.addText(input_arr[i],overlay_arr[i])
+    gen.addText(input_arr[i],overlay_arr[i+1])
 
 gen.merge()
 gen.generate("Output.pdf")
