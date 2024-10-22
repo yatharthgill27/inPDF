@@ -1,53 +1,60 @@
 from PyPDF2 import PdfWriter, PdfReader
-import io
 from reportlab.pdfgen.canvas import Canvas
+import io
 import json
 
 class GenerateFromTemplate:
     def __init__(self,template):
         self.template_pdf = PdfReader(open(template, "rb"))
         self.template_page= self.template_pdf.pages[0]
-
         self.packet = io.BytesIO()
         self.c = Canvas(self.packet,pagesize=(self.template_page.mediabox.width,self.template_page.mediabox.height))
-        self.c.setFont("Helvetica",18)
+        
+    def nextpage(self):
+        self.c.showPage()
 
-    
     def addText(self,text,point):
+        self.c.setFont("Helvetica",18)
         self.c.drawString(point[0],point[1],text)
-
+        
     def merge(self):
         self.c.save()
         self.packet.seek(0)
         result_pdf = PdfReader(self.packet)
-        result = result_pdf.pages[0]
+        lenght = len(result_pdf.pages)
+        
 
         self.output = PdfWriter()
-
-        self.template_page.merge_page(result)
-        self.output.add_page(self.template_page)
+        
+        for i in range(lenght):
+            result = result_pdf.pages[i]
+            self.page = self.template_pdf.pages[i]
+            self.page.merge_page(result)
+            self.output.add_page(self.page)
     
     def generate(self,dest):
         outputStream = open(dest,"wb")
         self.output.write(outputStream)
         outputStream.close()
 
-
 with open("tests.json") as f:
-    input_data = json.load(f)
-
+    input_data = json.load(f)["input"]
 
 with open("overlay.json") as f:
     overlay_data = json.load(f)
 
 pdf_path = overlay_data["path"]
-input_arr =  list(input_data.values())
-overlay_arr = list(overlay_data.values())
+num_of_pages = len(input_data)
+overlay_position = overlay_data["postion"]
 
 gen = GenerateFromTemplate(pdf_path)
 
-for i in range(len(input_arr)):
-    gen.addText(input_arr[i],overlay_arr[i+1])
+for j in range(len(input_data)):
+    input_arr = list(input_data[j].values())
+    overlay_arr = list(overlay_position[j].values())
+    for i in range(len(input_arr)):
+             gen.addText(input_arr[i],overlay_arr[i])
+    gen.nextpage()    
 
 gen.merge()
 gen.generate("Output.pdf")
